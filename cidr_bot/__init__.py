@@ -1,1 +1,1 @@
-from .bot import UuidBot
+from .bot import CidrBot
