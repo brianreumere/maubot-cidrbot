@@ -29,11 +29,11 @@ class CidrBot(Plugin):
                 message_lines.append(
                     f"`{cidr}` is a host address in the network `{network.with_prefixlen}`."
                 )
-            message_lines.append("- Available host addresses: `{network.num_addresses - 2}`")
-            message_lines.append("- Network ID: `{network.network_address.exploded}`")
-            message_lines.append("- Prefix: `{network.prefixlen}`")
-            message_lines.append("- Netmask: `{network.netmask.exploded}`")
-            message_lines.append("- Broadcast address: `{network.broadcast_address.exploded}`")
+            message_lines.append(f"- Available host addresses: `{network.num_addresses - 2}`")
+            message_lines.append(f"- Network ID: `{network.network_address.exploded}`")
+            message_lines.append(f"- Prefix: `{network.prefixlen}`")
+            message_lines.append(f"- Netmask: `{network.netmask.exploded}`")
+            message_lines.append(f"- Broadcast address: `{network.broadcast_address.exploded}`")
             await evt.reply("\n".join(message_lines))
         except ValueError:
             await evt.reply("Invalid address.")
