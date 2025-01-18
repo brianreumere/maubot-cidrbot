@@ -1,0 +1,9 @@
+maubot: 0.1.0
+id: info.mutualaid.maubot.cidrbot
+version: false  # Version is populated by the build workflow
+license: ISC
+modules:
+  - cidr_bot
+dependencies:
+  - ipaddress
+main_class: CidrBot

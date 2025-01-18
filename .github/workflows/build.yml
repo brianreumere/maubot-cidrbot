@@ -1,0 +1,66 @@
+name: "Maubot plugin build"
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+
+jobs:
+  build:
+    name: Build and release
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Get version from Git tag
+        id: ref
+        run: |
+          type=$(printf "%s" "$GITHUB_REF" | cut -d '/' -f 2)
+          if [ "$type" = "tags" ]; then
+            tag=$(printf "%s" "$GITHUB_REF" | cut -d '/' -f 3)
+            version=$(printf "%s" "$tag" | tr -d 'v')
+            if ! printf "%s" "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+              printf "Version %s is invalid\\n"
+              exit 1
+            else
+              echo "tag=${tag}" >> $GITHUB_OUTPUT
+              echo "version=${version}" >> $GITHUB_OUTPUT
+            fi
+          else
+            printf "Ref type %s is invalid for this workflow\\n" "$type"
+            exit 1
+          fi
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Maubot and build dependencies
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install maubot setuptools pyyaml
+      - name: Populate version
+        run: |
+          source .venv/bin/activate
+          python maubot.py
+          cat maubot.yaml
+        env:
+          BOT_VERSION: ${{ steps.ref.outputs.version }}
+      - name: Build plugin
+        run: |
+          source .venv/bin/activate
+          mbc build
+      - name: Create release
+        run: |
+          gh release create "v${BOT_VERSION}" \
+            --title "v${BOT_VERSION}" \
+            --generate-notes \
+            --verify-tag \
+            *-v"$BOT_VERSION".mbp
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BOT_VERSION: ${{ steps.ref.outputs.version }}
